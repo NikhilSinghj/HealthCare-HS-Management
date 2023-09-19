@@ -13,7 +13,7 @@ urlpatterns = [
      path('logout/', views.logout_user),
      path('bookappointment/', views.book_appointment),
      path('approveappointment/', views.approve_appointment),
-     path('assigndoctor/', views.assign_doctor),
+     path('confirmappointment/', views.confirm_appointment),
      path('getpatientappointment/', views.get_patient_appointment),
      path('patientundertrial/', views.patient_undertrial),
      path('getunapproved/', views.get_unapproved),

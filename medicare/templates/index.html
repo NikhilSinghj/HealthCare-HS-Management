@@ -58,32 +58,32 @@
     
     <div class="container">
         <h1><img src="https://cdn.sanity.io/images/kts928pd/production/acf71dc493554cc492578b8b5b8beb4ee20e8873-731x731.png" alt="Company Logo" style="height: 10%; width:10%;"><br> HealthCare</h1>
-        <h1>Doctor's Prescription</h1>
+        
         <hr>
         <h2>Patient Information</h2>
         <div class="patient-info">
-            <p><strong>Name:</strong> {{ patient_name }}</p>
-            <p><strong>Age:</strong> {{ patient_age }}</p>
-            <p><strong>Gender:</strong> {{ patient_gender }}</p>
-            <p><strong>Date of Visit:</strong> {{ visit_date }}</p>
+            <p><b>Name:</b> {{ username }}</p>
+            <p><b>Age:</b> {{ age }}</p>
+            <p><b>Gender:</b> {{ gender }}</p>
+            <p><b>Date of Visit:</b> {{ visitdate }}</p>
         </div>
         <div class="prescription">
             <h2>Prescription</h2>
-            <p><strong>Date:</strong> {{ prescription_date }}</p>
-            <p><strong>Medications:</strong></p>
+            <p><b>Date:</b> {{ prescription_date }}</p>
+            <p><b>Medications:</b></p>
             <ul>
                 {% for medication in medications %}
                     <li>{{ medication }}</li>
                 {% endfor %}
             </ul>
-            <p><strong>Instructions:</strong></p>
+            <p><b>Instructions:</b></p>
             <p>{{ prescription_instructions }}</p>
         </div>
         <div class="doctor-info">
             <h2>Doctor Information</h2>
-            <p><strong>Name:</strong> {{ doctor_name }}</p>
-            <p><strong>Specialty:</strong> {{ doctor_specialty }}</p>
-            <p><strong>Contact:</strong> {{ doctor_contact }}</p>
+            <p><b>Name:</b>Dr. {{ doctorname }}</p>
+            <p><b>Specialty:</b> {{ doctor_specialty }}</p>                     
+            <p><b>Contact:</b> {{ doctor_contact }}</p>
         </div>
     </div>
 </body>

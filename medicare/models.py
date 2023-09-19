@@ -7,7 +7,7 @@ class User(AbstractUser):
     gender = models.CharField(max_length=10)
     contact = models.CharField(max_length=20,null=True)
     address = models.CharField(max_length=40)
-    blood_group = models.CharField(max_length=40,null=True)
+    
 
     
 
@@ -49,30 +49,41 @@ class Appointment(models.Model):
         db_table = 'Appointment_details' 
 
 
-class Patient(models.Model):
+class Medicalhistory(models.Model):
     user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
-    doctor=models.ForeignKey(Doctor,on_delete=models.DO_NOTHING,null=True)
-    admitDate = models.DateField(auto_now=True)
-    releaseDate = models.DateField(null=False)
+    blood_group = models.CharField(max_length=40,null=True)
+    height = models.CharField(max_length=40,null=True)
+    weight = models.CharField(max_length=40,null=True)
+    alcoholic=models.BooleanField(default=False)
+    smoker=models.BooleanField(default=False)
     symptoms = models.CharField(max_length=100,null=True)
-    prescriptions = models.CharField(max_length=100,null=True)
     deleted_status = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'Patients_details' 
+        db_table = 'Medical_history' 
     
 
 
 
 
 
-class PaymentDetails(models.Model):
-    user=models.OneToOneField(User,on_delete=models.DO_NOTHING,null=True)
-    roomCharge=models.PositiveIntegerField(null=False)
-    medicineCost=models.PositiveIntegerField(null=False)
-    doctorFee=models.PositiveIntegerField(null=False)
-    OtherCharge=models.PositiveIntegerField(null=False)
-    total=models.PositiveIntegerField(null=False)
+class Prescription(models.Model):
+    user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
+    medicine=models.CharField(max_length=50,null=True)
+    quantity=models.PositiveIntegerField(null=True)
+    price=models.PositiveIntegerField(null=True)
+    deleted_status = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'Payment_details' 
+        db_table = 'Prescriptinons_details' 
+
+
+class Instructuns(models.Model):
+    user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
+    instructions=models.TextField(max_length=50,null=True)
+    deleted_status = models.BooleanField(default=False)
+
+    class Meta:
+        db_table= 'Instrictions'
+
+
