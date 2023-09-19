@@ -9,6 +9,8 @@ class User(AbstractUser):
     address = models.CharField(max_length=40)
     blood_group = models.CharField(max_length=40,null=True)
 
+    
+
 class Dropdown(models.Model):
     departments = models.CharField(max_length=100,null=True,unique=True)
     deleted_status=models.BooleanField(default=False)

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor's Prescription</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color:#eae9e8;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        hr {
+            border: 1px solid #ccc;
+            margin: 15px 0;
+        }
+
+        .prescription, .doctor-info {
+            margin: 20px 0;
+            
+        }
+        .patient-info {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+
+        }
+
+
+        h2 {
+            color: #333;
+        }
+
+        p {
+            color: #666;
+        }
+
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <h1><img src="https://cdn.sanity.io/images/kts928pd/production/acf71dc493554cc492578b8b5b8beb4ee20e8873-731x731.png" alt="Company Logo" style="height: 10%; width:10%;"><br> HealthCare</h1>
+        <h1>Doctor's Prescription</h1>
+        <hr>
+        <h2>Patient Information</h2>
+        <div class="patient-info">
+            <p><strong>Name:</strong> {{ patient_name }}</p>
+            <p><strong>Age:</strong> {{ patient_age }}</p>
+            <p><strong>Gender:</strong> {{ patient_gender }}</p>
+            <p><strong>Date of Visit:</strong> {{ visit_date }}</p>
+        </div>
+        <div class="prescription">
+            <h2>Prescription</h2>
+            <p><strong>Date:</strong> {{ prescription_date }}</p>
+            <p><strong>Medications:</strong></p>
+            <ul>
+                {% for medication in medications %}
+                    <li>{{ medication }}</li>
+                {% endfor %}
+            </ul>
+            <p><strong>Instructions:</strong></p>
+            <p>{{ prescription_instructions }}</p>
+        </div>
+        <div class="doctor-info">
+            <h2>Doctor Information</h2>
+            <p><strong>Name:</strong> {{ doctor_name }}</p>
+            <p><strong>Specialty:</strong> {{ doctor_specialty }}</p>
+            <p><strong>Contact:</strong> {{ doctor_contact }}</p>
+        </div>
+    </div>
+</body>
+</html>

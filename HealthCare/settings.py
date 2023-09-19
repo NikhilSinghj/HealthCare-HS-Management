@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'sslserver',
     'medicare',
     
+    
 ]
 
 MIDDLEWARE = [
@@ -67,7 +68,7 @@ AUTH_USER_MODEL='medicare.User'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

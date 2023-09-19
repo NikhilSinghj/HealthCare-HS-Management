@@ -20,7 +20,7 @@ urlpatterns = [
      path('checked/', views.checked),
      path('getpatient/', views.get_patient),
      path('getprappoint/', views.get_previous_appointments),
-     # path('generatepdf/', views.generate_pdf),
+     path('generatepdf/', views.generate_pdf),
 
      
   

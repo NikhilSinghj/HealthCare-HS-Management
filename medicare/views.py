@@ -1,12 +1,14 @@
-# from django.shortcuts import render
+from django.shortcuts import render
 
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 import json
 import re
 from .models import User,Doctor,Appointment,Dropdown
 from datetime import datetime
 from django.contrib.auth import authenticate,login,logout
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
 
 
 # ----------------------------------------------------- Registration and login/logout -----------------------------------------------
@@ -112,6 +114,15 @@ def login_user(request):
        
         if user is not None:
             login(request,user)
+            context={
+                    "username":username
+            }
+            template='emailconfirm.html'
+            confirmation_message = render_to_string(template,context)
+            subject = 'Appointment Confirmation'
+            from_email = 'nikhilsinghj80@gmail.com'
+            to_email = ['mukundchaudhary229@gmail.com']
+            send_mail(subject,'Appointment Confirmation',from_email, to_email,html_message=confirmation_message)
             return JsonResponse({'message':'You Are logged in','is_superuser':user.is_superuser,'is_staff':user.is_staff})
             
         else:
@@ -357,27 +368,36 @@ def approve_appointment(request):
 
             if not appointment.approvedby_doctor:
                 appointment.approvedby_doctor=True
-                appointment.save()
+                # appointment.save()
 
                 user = User.objects.get(pk=appointment.user_id)
-            
+                department=Dropdown.objects.get(pk=appointment.department_id)
+                print(department.departments)
                 doctor=User.objects.get(pk=request.user.id)
-
+                context={
+                            "username":user.first_name,
+                            "appointmaentDate":appointment.appointmentDate,
+                            "appointmenttime":appointment.time,
+                            "doctor":doctor.first_name + ' ' + doctor.last_name,
+                            "department":department
+                        }
+                
+                # confirmation_message =f"Dear {user.first_name},\n\n" \
+                #                       f"We are pleased to confirm the booking of your appointment at HealthCare. Your appointment details are as follows:\n\n" \
+                #                       f"- Appointment Date: {appointment.appointmentDate}\n" \
+                #                       f"- Appointment Time: {appointment.time}\n" \
+                #                       f"- Doctor: Dr. {doctor.first_name + ' ' + doctor.last_name}\n" \
+                #                       f"- Department: {appointment.department}\n\n" \
+                #                       f"We look forward to providing you with the best healthcare service possible. If you have any questions or need to make any changes to your appointment, please do not hesitate to contact our reception desk at 9580395130 \n\n" \
+                #                       f"Thank you for choosing HealthCare . We value your trust and look forward to seeing you on {appointment.appointmentDate} between {appointment.time}.\n\n" \
+                #                       f"Sincerely,\n\n" \
+                #                       f"HealthCare\n" \
+                #                       f"Email : nikhilsinghj80@gmail.com"
+                confirmation_message = render_to_string('emailconfirm.html',context)
                 subject = 'Appointment Confirmation'
-                confirmation_message =f"Dear {user.first_name},\n\n" \
-                                      f"We are pleased to confirm the booking of your appointment at HealthCare. Your appointment details are as follows:\n\n" \
-                                      f"- Appointment Date: {appointment.appointmentDate}\n" \
-                                      f"- Appointment Time: {appointment.time}\n" \
-                                      f"- Doctor: Dr. {doctor.first_name + ' ' + doctor.last_name}\n" \
-                                      f"- Department: {appointment.department}\n\n" \
-                                      f"We look forward to providing you with the best healthcare service possible. If you have any questions or need to make any changes to your appointment, please do not hesitate to contact our reception desk at 9580395130 \n\n" \
-                                      f"Thank you for choosing HealthCare . We value your trust and look forward to seeing you on {appointment.appointmentDate} between {appointment.time}.\n\n" \
-                                      f"Sincerely,\n\n" \
-                                      f"HealthCare\n" \
-                                      f"Email : nikhilsinghj80@gmail.com"
                 from_email = 'nikhilsinghj80@gmail.com'
                 to_email = [user.email]
-                send_mail(subject, confirmation_message, from_email, to_email,fail_silently=False)
+                send_mail(subject, confirmation_message, from_email, to_email,fail_silently=False,html_message=confirmation_message)
                 return JsonResponse({'messege':'appointment is Approved by Doctor'},status=200)
             else:
                 return JsonResponse({'messege':'You have Already approved this patient'},status=409)
@@ -494,10 +514,11 @@ def book_appointment(request):
             if not appointmentDate or not department_id or not time or not doctor_id: 
                 return JsonResponse({'messege':'Missing required Field'},status=400)
             
-            
-            if Appointment.objects.filter(user_id=request.user.id,appointmentDate=appointmentDate).exists():
-                if Appointment.objects.filter(user_id=request.user.id,department_id=department_id).exists():
-                    return JsonResponse({'messege':f'You Already have an appointment on : {appointmentDate} for : {department_id}'},status=409)
+            # print(request.user)
+            if Appointment.objects.filter(user=request.user.id,appointmentDate=appointmentDate).exists():
+                # print(request.user)
+                if Appointment.objects.filter(user_id=request.user.id,department_id=department_id,time=time).exists():
+                    return JsonResponse({'messege':f'You Already have an appointment on : {appointmentDate} for : {department_id} '},status=409)
                 else:
                     Appointment.objects.create(user_id=request.user.id,appointmentDate=appointmentDate,department_id=department_id,doctor_id=doctor_id,time=time)
                     
@@ -606,26 +627,78 @@ def dropdown_doctor(request):
 # ----------------------------------------------------- PDF -----------------------------------------------
 
 
+def generate_pdf(request):
 
-from django.http import HttpResponse
+    if request.method == "POST":
+        
+        username="nikhil"
+        context={
+                  "username":username,
+                  "doctor":"srijan"
+                }
+        pdf_content = render_to_string('bill.html',context)
+    
+        pdf_response = HttpResponse(content_type='template/pdf')
+        pdf_response['Content-Disposition'] = 'filename="sample.pdf"'
+
+    
+        pdf_response.write(pdf_content)
+
+        return pdf_response
+    else:
+        return JsonResponse({'messege':'Invalid request method'},status=400)
+
+
+
+# class LabelsView(PDFView):
+#     """Generate labels for some Shipments.
+
+#     A PDFView behaves pretty much like a TemplateView, so you can treat it as such.
+#     """
+#     template_name = 'my_app/labels.html'
+
+#     def get_context_data(self, *args, **kwargs):
+#         """Pass some extra context to the template."""
+#         context = super().get_context_data(*args, **kwargs)
+
+#         context['shipments'] = User.objects.filter(
+#             batch_id=kwargs['pk'],
+#         )
+
+#         return context
+
+
+# from weasyprint import HTML
+# from django.template.loader import get_template
 
 
 # def generate_pdf(request):
-#     if request.method == 'POST':
-#         pdf_content = "This is the content of my PDF."
-    
-        
-#         html = HTML(string=pdf_content)
-    
-    
-#         pdf = html.write_pdf()
-    
-    
-#         response = HttpResponse(pdf, content_type='application/pdf')
-#         response['Content-Disposition'] = 'filename="my_pdf.pdf"'
+#         html_template = get_template('templates/index.html')
+#         pdf_file = HTML(string=html_template).write_pdf()
+#         response = HttpResponse(pdf_file, content_type='application/pdf')
+#         response['Content-Disposition'] = 'filename="home_page.pdf"'
 #         return response
-#     else:
-#         return JsonResponse({'message': 'Invalid request method'}, status=400)
+
+
+# from io import BytesIO
+# from django.http import HttpResponse
+# from reportlab.pdfgen import canvas
+
+# def generate_pdf(request):
+    
+#     buffer = BytesIO()
+#     p = canvas.Canvas(buffer)
+#     p.drawString(100, 750, "Hello world.")
+#     p.showPage()
+#     p.save()
+
+    
+#     buffer.seek(0)
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename="example.pdf"'
+#     response.write(buffer.read())
+
+#     return response
 
 
 
