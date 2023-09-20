@@ -21,6 +21,7 @@ urlpatterns = [
      path('getpatient/', views.get_patient),
      path('getprappoint/', views.get_previous_appointments),
      path('generatepdf/', views.generate_pdf),
+     path('getpanel/', views.left_panel),
 
      
   

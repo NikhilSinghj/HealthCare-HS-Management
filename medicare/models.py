@@ -72,6 +72,7 @@ class Prescription(models.Model):
     medicine=models.CharField(max_length=50,null=True)
     quantity=models.PositiveIntegerField(null=True)
     price=models.PositiveIntegerField(null=True)
+    prescription_date=models.DateField(auto_now=True)
     deleted_status = models.BooleanField(default=False)
 
     class Meta:
@@ -87,3 +88,10 @@ class Instructuns(models.Model):
         db_table= 'Instrictions'
 
 
+class Leftpanel(models.Model):
+    panel=models.CharField(max_length=50,null=False)
+    dashboard=models.CharField(max_length=30,null=False)
+    deleted_status = models.BooleanField(default=False)
+
+    class Meta:
+        db_table='Leftpannel'

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse,HttpResponse
 import json
 import re
-from .models import User,Doctor,Appointment,Dropdown
+from .models import User,Doctor,Appointment,Dropdown,Leftpanel
 from datetime import datetime
 from django.contrib.auth import authenticate,login,logout
 from django.core.mail import send_mail
@@ -540,7 +540,7 @@ def book_appointment(request):
 def get_patient(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-            patient = list(User.objects.filter(pk=request.user.id).values('first_name','last_name','age','gender','contact','address','blood_group'))
+            patient = list(User.objects.filter(pk=request.user.id).values('first_name','last_name','age','gender','contact','address'))
 
             if patient:
                 return JsonResponse(patient,safe=False)
@@ -557,7 +557,7 @@ def get_patient(request):
 def get_previous_appointments(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-            patient = list(Appointment.objects.filter(user_id=request.user.id).values('appointmentDate','department','checkup_status'))
+            patient = list(Appointment.objects.filter(user_id=request.user.id).values('appointmentDate','department__departments','checkup_status'))
 
             if patient:
                 return JsonResponse(patient,safe=False)
@@ -568,6 +568,18 @@ def get_previous_appointments(request):
     
     else:
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
+
+
+def history(request):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+           json
+        else:
+            return JsonResponse({'message': 'You Are not logged in'},status=401)   
+    
+    else:
+        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+
 
 # ----------------------------------------------------- Home Page -----------------------------------------------
 
@@ -607,9 +619,26 @@ def dropdown_doctor(request):
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
 
 
-
-
-
+def left_panel(request):
+    if request.method=="GET":
+        if request.user.is_authenticated:
+            if request.user.is_staff:
+                dashboard="Doctor"
+                panels=Leftpanel.objects.filter(dashboard=dashboard).values('panel')
+                return JsonResponse(list(panels),safe=False)
+            elif request.user.is_superuser:
+                dashboard="Receptionist"
+                panels=Leftpanel.objects.filter(dashboard=dashboard).values('panel')
+                return JsonResponse(list(panels),safe=False)
+            else:
+                dashboard="User"
+                panels=Leftpanel.objects.filter(dashboard=dashboard).values('panel')
+                return JsonResponse(list(panels),safe=False)
+        else:
+            return JsonResponse({'message':'You are not logged in'},status=401)
+        
+    else:
+        return JsonResponse({'message':'Invalid request Method'},status=400)
 
 
 
