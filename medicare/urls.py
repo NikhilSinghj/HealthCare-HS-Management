@@ -17,11 +17,15 @@ urlpatterns = [
      path('getpatientappointment/', views.get_patient_appointment),
      path('patientundertrial/', views.patient_undertrial),
      path('getunapproved/', views.get_unapproved),
+     path('getapproved/', views.get_approved),
      path('checked/', views.checked),
      path('getpatient/', views.get_patient),
      path('getprappoint/', views.get_previous_appointments),
      path('generatepdf/', views.generate_pdf),
      path('getpanel/', views.left_panel),
+     path('medicalhistory/', views.medical_history),
+     path('doctorinfo/', views.personal_information),
+     # path('doctorname/', views.doctorname),
 
      
   

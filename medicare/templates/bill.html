@@ -1,10 +1,104 @@
-<html>
-    <head>
-    Home Page
-    </head>
-        <body>
-        <h1>Hello {{username}}</h1>
-        <h1>Hello Dr. {{doctorname}}</h1>
-        <p>First Pdf Generation</p>
-        </body>
+<!-- Create a new Django template (e.g., bill_template.html) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bill</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #eae9e8;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        hr {
+            border: 1px solid #ccc;
+            margin: 15px 0;
+        }
+
+        .bill-info {
+            margin: 20px 0;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        h2 {
+            color: #333;
+           
+            
+        }
+
+        .table{
+            display: flex;
+            justify-content: space-between;
+        }
+        
+
+        p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><img src="https://cdn.sanity.io/images/kts928pd/production/acf71dc493554cc492578b8b5b8beb4ee20e8873-731x731.png" alt="Company Logo" style="height: 10%; width:10%;"><br> HealthCare</h1>
+
+
+    <hr>
+
+    <h2>Bill Information</h2>
+    <div class="bill-info">
+        <div class="item">
+            <p><b>Invoice Number:</b> {{ invoice_number }}</p>
+            <p><b>Bill Date:</b> {{ bill_date }}</p>
+        </div>
+        <div class="item">
+            <p><b>Customer Name:</b> {{ customer_name }}</p>
+            <p><b>Customer Email:</b> {{ customer_email }}</p>
+        </div>
+    </div>
+
+    <h2>Items</h2>
+    <div calss="table">
+    <table>
+        <thead>
+            <tr>
+                <th>Item Description</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price }}</td>
+                    <td>{{ item.total }}</td>
+                </tr>
+            
+        </tbody>
+    </table>
+    </div>
+    <h2>Total Amount: ${{ total_amount }}</h2>
+</div>
+</body>
 </html>
