@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse,HttpResponse
 import json
 import re
-from .models import User,Doctor,Appointment,Dropdown,Leftpanel,Medicalhistory
+from .models import User,Doctor,Appointment,Dropdown,Leftpanel,Medicalhistory,Role
 from datetime import datetime
 from django.contrib.auth import authenticate,login,logout
 from django.core.mail import send_mail
@@ -52,9 +52,14 @@ def register_doctor(request):
                     return JsonResponse({'message':'Email Already exists'},status=409)
                 else:
             
-                    user= User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password,age=age,gender=gender,contact=contact,address=address,is_staff=True)
+                    user= User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password,age=age,gender=gender,contact=contact,address=address)
+                    doctor_role, created = Role.objects.get_or_create(name='Doctor')
                     Doctor.objects.create(qualification=qualification,department_id=department_id,doctorFee=doctorFee,user_id=user.id)
-                    return JsonResponse({'message':'Doctor is Registered Now'},status=201)
+                    if created:
+                        return JsonResponse({'message':'You Already Have This Role'})
+                    else:
+                        user.roles.add(doctor_role)
+                        return JsonResponse({'message':'Doctor is Registered Now'},status=201)
 
     else:
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
@@ -95,7 +100,14 @@ def register_user(request):
                 elif User.objects.filter(email=email).exists():
                     return JsonResponse({'message':'Email Already exists'},status=409)
                 else:
-                    User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password,age=age,gender=gender,contact=contact,address=address)
+                    user=User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password,age=age,gender=gender,contact=contact,address=address)
+                    patient_role, created = Role.objects.get_or_create(name='Patient')
+                    
+                    if created:
+                        return JsonResponse({'message':'You Already Have This Role'})
+                    else:
+                        user.roles.add(patient_role)
+
                     return JsonResponse({'message':'User is Registered Now'},status=201)
                     
 
@@ -121,16 +133,13 @@ def login_user(request):
         
         if user is not None:
             login(request,user)
-            context={
-                    "username":username
-            }
-            template='appointment_confirmation.html'
-            confirmation_message = render_to_string(template,context)
-            subject = 'Appointment Confirmation'
-            from_email = 'nikhilsinghj80@gmail.com'
-            to_email = ['rickysinghshera23@gmail.com']
-            # send_mail(subject,'Appointment Confirmation',from_email, to_email,html_message=confirmation_message)
-            return JsonResponse({'message':'You Are logged in','is_superuser':user.is_superuser,'is_staff':user.is_staff})
+
+            role =Role.objects.get(user=request.user.id)
+            # return JsonResponse({'message':'You Are logged in','role':role.name})
+            if not role:
+                return JsonResponse({'message':'Yo Not Have Any role'})
+            else:
+                return JsonResponse({'message':'You Are logged in','role':role.name})
             
         else:
             return JsonResponse({'message':'Incorrect Username Or password'},status=401)
@@ -159,15 +168,18 @@ def logout_user(request):
 
 def get_patient_appointment(request):
     if request.method == 'GET':
-        if request.user.is_authenticated and request.user.is_superuser:
-            patient = list(Appointment.objects.values())
+        if request.user.is_authenticated:
+            if Role.objects.filter(user=request.user.id,name="Receptionist").exists():
+                patient = list(Appointment.objects.filter(approvedby_receptionist=False,approvedby_doctor=False).values())
 
-            if patient:
-                return JsonResponse(patient,safe=False)
+                if patient:
+                    return JsonResponse(patient,safe=False)
+                else:
+                    return JsonResponse({'message': 'No Appointment at this Moment'},status=204) 
             else:
-                return JsonResponse({'message': 'No Appointment at this Moment'},status=204) 
+                return JsonResponse({'message': 'You Are Not Autherised'},status=403)   
         else:
-            return JsonResponse({'message': 'User not logged in'},status=401)   
+            return JsonResponse({'message': 'User not logged in'},status=401)
     
     else:
         return JsonResponse({'messege':'Invalid Request Method'},status=400)     
@@ -369,7 +381,7 @@ def confirm_appointment(request):
                 department=Dropdown.objects.get(pk=appointment.department_id)
                 doctor=User.objects.get(pk=request.user.id)
                 context={
-                            "username":user.first_name,
+                            # "username":user.first_name,
                             "appointmaentDate":appointment.appointmentDate,
                             "appointmenttime":appointment.time,
                             "doctor":doctor.first_name + ' ' + doctor.last_name,
@@ -422,7 +434,7 @@ def confirm_appointment(request):
                 
                 
                 context={
-                            "username":user.first_name,
+                            # "username":user.first_name,
                             "appointmaentDate":appointment.appointmentDate,
                             "appointmenttime":appointment.time,
                             "doctor":doctor.first_name + ' ' + doctor.last_name,
@@ -686,18 +698,18 @@ def dropdown_doctor(request):
 def left_panel(request):
     if request.method=="GET":
         if request.user.is_authenticated:
-            if request.user.is_staff:
-                dashboard="Doctor"
-                panels=Leftpanel.objects.filter(dashboard=dashboard).values('panel')
+            if Role.objects.filter(user=request.user.id,name="Receptionist").exists():
+                panels=Leftpanel.objects.filter(role="3").values('panel','icons','state')
                 return JsonResponse(list(panels),safe=False)
-            elif request.user.is_superuser:
-                dashboard="Receptionist"
-                panels=Leftpanel.objects.filter(dashboard=dashboard).values('panel')
+            elif Role.objects.filter(user=request.user.id,name="Doctor").exists():
+                panels=Leftpanel.objects.filter(role="1").values('panel','icons','state')
+                return JsonResponse(list(panels),safe=False)
+            elif Role.objects.filter(user=request.user.id,name="Patient").exists():
+                panels=Leftpanel.objects.filter(role="2").values('panel','icons','state')
                 return JsonResponse(list(panels),safe=False)
             else:
-                dashboard="User"
-                panels=Leftpanel.objects.filter(dashboard=dashboard).values('panel')
-                return JsonResponse(list(panels),safe=False)
+                return JsonResponse({'message':'No Role Found for this user'},status=304)
+
         else:
             return JsonResponse({'message':'You are not logged in'},status=401)
         

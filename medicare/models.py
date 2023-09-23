@@ -2,13 +2,20 @@ from django.db import models
 
 from django.contrib.auth.models import AbstractUser
 
+
+class Role(models.Model):
+    name = models.CharField(max_length=50)
+    
+
+
 class User(AbstractUser):
     age = models.PositiveIntegerField(null=True)
     gender = models.CharField(max_length=10)
     contact = models.CharField(max_length=20,null=True)
     address = models.CharField(max_length=40)
+    roles = models.ManyToManyField(Role)
     
-
+    
     
 
 class Dropdown(models.Model):
@@ -89,9 +96,11 @@ class Instructuns(models.Model):
 
 
 class Leftpanel(models.Model):
+    role=models.ForeignKey(Role,on_delete=models.DO_NOTHING,null=True)
     panel=models.CharField(max_length=50,null=False)
-    dashboard=models.CharField(max_length=30,null=False)
+    state=models.TextField(max_length=50,blank=True)
+    icons=models.TextField(max_length=50,null=True)
     deleted_status = models.BooleanField(default=False)
 
     class Meta:
-        db_table='Leftpannel'
+        db_table='Leftpanel'
