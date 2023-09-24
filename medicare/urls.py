@@ -6,7 +6,8 @@ urlpatterns = [
      path('registerdoctor/', views.register_doctor),
      path('departdrop/', views.dropdown_department),
      path('doctordrop/', views.dropdown_doctor),
-     path('availdoctors/', views.avialable_doctor),
+     path('availdoctors/', views.available_doctor),
+     path('doctorfulldetail/', views.doctor_full_detail),
      path('ptunderdoct/', views.patient_under_doctor),
      path('registeruser/', views.register_user),
      path('login/', views.login_user),
@@ -24,6 +25,7 @@ urlpatterns = [
      path('generatepdf/', views.generate_pdf),
      path('getpanel/', views.left_panel),
      path('medicalhistory/', views.medical_history),
+     path('getmedicalhistory/', views.get_medicalhistory),
      path('doctorinfo/', views.personal_information),
      # path('doctorname/', views.doctorname),
 

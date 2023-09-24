@@ -42,6 +42,7 @@ class Doctor(models.Model):
 class Appointment(models.Model):
     user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
     department=models.ForeignKey(Dropdown,on_delete=models.DO_NOTHING,null=True)
+    doctor=models.ForeignKey(Doctor,on_delete=models.DO_NOTHING,null=True)
     doctor_name=models.CharField(max_length=50,null=True)
     appointmentDate=models.DateField(null=True)
     approvedby_doctor = models.BooleanField(default=False)

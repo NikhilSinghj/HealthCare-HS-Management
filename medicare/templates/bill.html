@@ -8,6 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin-top:100px; 
         }
 
         .container {
@@ -44,11 +45,14 @@
             
         }
 
-        .table{
-            display: flex;
-            justify-content: space-between;
-        }
+        table, th, td {
+            border: 1px solid black;
         
+
+          }
+        td{
+            text-align: center;
+        }
 
         p {
             color: #666;
@@ -63,42 +67,48 @@
 
     <hr>
 
-    <h2>Bill Information</h2>
+    <h2>Customer Information</h2>
     <div class="bill-info">
         <div class="item">
-            <p><b>Invoice Number:</b> {{ invoice_number }}</p>
-            <p><b>Bill Date:</b> {{ bill_date }}</p>
+            <p><b>Invoice Number:</b> {{ invoiceno }}</p>
+            <p><b>Bill Date:</b> {{ billdate }}</p>
         </div>
         <div class="item">
-            <p><b>Customer Name:</b> {{ customer_name }}</p>
-            <p><b>Customer Email:</b> {{ customer_email }}</p>
+            <p><b>Customer Name:</b> {{ name }}</p>
+            <p><b>Customer Contact:</b> {{ contact }}</p>
         </div>
     </div>
 
-    <h2>Items</h2>
+    <h2>Appointment Detail</h2>
     <div calss="table">
-    <table>
+    <table style="width:100%">
         <thead>
             <tr>
-                <th>Item Description</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Total</th>
+                <th>Appointment Date</th> 
+                <th>Slot</th> 
+                <th>Department</th> 
+                <th>Doctor</th>
+                <th>Fees</th>
             </tr>
         </thead>
         <tbody>
             
-                <tr>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>{{ item.unit_price }}</td>
-                    <td>{{ item.total }}</td>
+                <tr >
+                    <td>{{ visitdate }}</td> 
+                    <td>{{ time }}</td>
+                    <td>{{ department }}</td>
+                    <td>{{ doctorname}}</td>
+                    <td>₹ {{ fees }}</td>
                 </tr>
             
         </tbody>
     </table>
     </div>
-    <h2>Total Amount: ${{ total_amount }}</h2>
+    <h2>Total Amount: ₹ {{ fees }}</h2>
+    <div class="item">
+    <h3>Contact : 9580395130</h3>
+    <h3>Address : Civil Lines,Prayagraj</h3>
+</div>
 </div>
 </body>
 </html>
