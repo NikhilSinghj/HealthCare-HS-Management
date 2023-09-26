@@ -9,10 +9,8 @@ class Role(models.Model):
 
 
 class User(AbstractUser):
-    age = models.PositiveIntegerField(null=True)
-    gender = models.CharField(max_length=10)
-    contact = models.CharField(max_length=20,null=True)
-    address = models.CharField(max_length=40)
+    first_name=None
+    last_name=None
     roles = models.ManyToManyField(Role)
     
     
@@ -26,24 +24,43 @@ class Dropdown(models.Model):
         db_table = 'Dropdown'
 
 
+class Patient(models.Model):
+    user=models.OneToOneField(User,on_delete=models.DO_NOTHING,null=True)
+    first_name=models.CharField(max_length=50)
+    last_name=models.CharField(max_length=50)
+    age = models.PositiveIntegerField(null=True)
+    gender = models.CharField(max_length=10)
+    contact = models.CharField(max_length=20,null=True)
+    address = models.CharField(max_length=100)
+
+    class Meta:
+        db_table= 'patient_detail'
+
+
+
 class Doctor(models.Model):
     user=models.OneToOneField(User,on_delete=models.DO_NOTHING,null=True)
     department=models.ForeignKey(Dropdown,on_delete=models.DO_NOTHING,null=True)
+    first_name=models.CharField(max_length=50,null=True)
+    last_name=models.CharField(max_length=50,null=True)
+    age = models.PositiveIntegerField(null=True)
+    gender = models.CharField(max_length=10,null=True)
+    contact = models.CharField(max_length=20,null=True)
+    address = models.CharField(max_length=100,null=True)
     qualification = models.CharField(max_length=50)
     doctorFee=models.PositiveIntegerField(null=False)
     deleted_status=models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'Doctors_details' 
+        db_table = 'doctors_details' 
 
 
 
 
 class Appointment(models.Model):
-    user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
+    patient=models.ForeignKey(Patient,on_delete=models.DO_NOTHING,null=True)
     department=models.ForeignKey(Dropdown,on_delete=models.DO_NOTHING,null=True)
     doctor=models.ForeignKey(Doctor,on_delete=models.DO_NOTHING,null=True)
-    doctor_name=models.CharField(max_length=50,null=True)
     appointmentDate=models.DateField(null=True)
     approvedby_doctor = models.BooleanField(default=False)
     approvedby_receptionist = models.BooleanField(default=False)
@@ -58,7 +75,7 @@ class Appointment(models.Model):
 
 
 class Medicalhistory(models.Model):
-    user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
+    patient=models.ForeignKey(Patient,on_delete=models.DO_NOTHING,null=True)
     blood_group = models.CharField(max_length=40,null=True)
     height = models.PositiveIntegerField(null=True)
     weight = models.PositiveIntegerField(null=True)
@@ -76,7 +93,7 @@ class Medicalhistory(models.Model):
 
 
 class Prescription(models.Model):
-    user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
+    patient=models.ForeignKey(Patient,on_delete=models.DO_NOTHING,null=True)
     medicine=models.CharField(max_length=50,null=True)
     quantity=models.PositiveIntegerField(null=True)
     price=models.PositiveIntegerField(null=True)
@@ -88,7 +105,7 @@ class Prescription(models.Model):
 
 
 class Instructuns(models.Model):
-    user=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=True)
+    patient=models.ForeignKey(Patient,on_delete=models.DO_NOTHING,null=True)
     instructions=models.TextField(max_length=50,null=True)
     deleted_status = models.BooleanField(default=False)
 
@@ -101,6 +118,7 @@ class Leftpanel(models.Model):
     panel=models.CharField(max_length=50,null=False)
     state=models.TextField(max_length=50,blank=True)
     icons=models.TextField(max_length=50,null=True)
+    order=models.IntegerField(max_length=20,default='0')
     deleted_status = models.BooleanField(default=False)
 
     class Meta:

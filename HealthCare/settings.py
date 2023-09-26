@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'HealthCare.wsgi.application'
 DATABASES = {
     'default': {
          'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hospitals',
+        'NAME': 'hospital',
         'USER': 'nikhil',
         'PASSWORD':'Nik212107@',
         'HOST':'localhost',
