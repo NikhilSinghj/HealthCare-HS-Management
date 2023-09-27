@@ -22,7 +22,7 @@ urlpatterns = [
      path('confirmappointment/', views.confirm_appointment),
      path('getunapproved/', views.get_unapproved),
      path('getapproved/', views.get_approved),
-     path('checked/', views.checked),
+     path('getprescription/', views.get_prescription),
      path('getpatient/', views.get_patient),
      path('doctorinfo/', views.personal_information),
 
@@ -31,7 +31,7 @@ urlpatterns = [
      path('generatepdf/', views.generate_pdf),
      path('medicalhistory/', views.medical_history),
      path('getmedicalhistory/', views.get_medicalhistory),
-     # path('doctorname/', views.doctorname),
+     path('prescribe/', views.save_prescription),
      
      path('getpanel/', views.left_panel),
   

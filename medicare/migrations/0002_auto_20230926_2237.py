@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='leftpanel',
             name='order',
-            field=models.IntegerField(default='0', max_length=20),
+            field=models.IntegerField(default='0'),
         ),
     ]

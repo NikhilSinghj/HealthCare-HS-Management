@@ -94,9 +94,11 @@ class Medicalhistory(models.Model):
 
 class Prescription(models.Model):
     patient=models.ForeignKey(Patient,on_delete=models.DO_NOTHING,null=True)
+    doctor=models.ForeignKey(Doctor,on_delete=models.DO_NOTHING,null=True)
     medicine=models.CharField(max_length=50,null=True)
     quantity=models.PositiveIntegerField(null=True)
-    price=models.PositiveIntegerField(null=True)
+    dosage=models.CharField(max_length=50,null=True)
+    timing=models.CharField(max_length=50,null=True)
     prescription_date=models.DateField(auto_now=True)
     deleted_status = models.BooleanField(default=False)
 
@@ -118,7 +120,7 @@ class Leftpanel(models.Model):
     panel=models.CharField(max_length=50,null=False)
     state=models.TextField(max_length=50,blank=True)
     icons=models.TextField(max_length=50,null=True)
-    order=models.IntegerField(max_length=20,default='0')
+    order=models.IntegerField(default='0')
     deleted_status = models.BooleanField(default=False)
 
     class Meta:

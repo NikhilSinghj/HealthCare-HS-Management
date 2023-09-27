@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse,HttpResponse
 import json
 import re
-from .models import User,Doctor,Patient,Appointment,Dropdown,Leftpanel,Medicalhistory,Role
+from .models import User,Doctor,Patient,Appointment,Dropdown,Leftpanel,Medicalhistory,Role,Prescription
 from datetime import datetime
 from django.contrib.auth import authenticate,login,logout
 from django.core.mail import send_mail
@@ -396,34 +396,54 @@ def get_unapproved(request):
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
     
 
-def checked(request):
-    if request.method == 'GET':
-        if request.user.is_authenticated and request.user.is_superuser:
-            patient = list(Appointment.objects.filter(checkup_status=True).values())
+def get_prescription(request):
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            if Role.objects.filter(user=request.user.id,name="Doctor").exists():
+                id= request.GET.get('id')
 
-            if patient:
-                return JsonResponse(patient,safe=False)
+                if id is None:
+                    return JsonResponse({'message':'Missing key id'},status=400)
+                if not id:
+                    return JsonResponse({'message':'Missing Required Field'},status=400)
+            
+                prescription = list(Prescription.objects.filter(patient=id).values('medicine','quantity','dosage','timing','patient__first_name','patient__last_name','patient__age','patient__gender','doctor__first_name','doctor__last_name','doctor__qualification','doctor__contact'))
+
+                if prescription:
+                    return JsonResponse(prescription,safe=False)
+                else:
+                    return JsonResponse({'message': 'You not have any prescription'},status=204) 
             else:
-                return JsonResponse({'message': 'You have not cheked any patient yet'},status=204) 
+                return JsonResponse({'message':'you Are Not Autherised'},status=403)
         else:
-            return JsonResponse({'message': 'User not logged in'},status=401)   
+            return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
 
-def prescribe(request):
-    if request.user.is_authenticated:
-        if Role.objects.filter(user=request.user.id,name="Doctor").exists():
-            load=json.loads(request.body)
-
-            user_id=load.get('user_id')
-            medicine=load.get('medicine')
-            dosage=load.get('dosage')
+def save_prescription(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print(data)
+           
+            for prescription_data in data:
+                prescription = Prescription(
+                    patient_id=prescription_data['patient_id'],
+                    doctor_id=prescription_data['doctor_id'],
+                    medicine=prescription_data['medicine'],
+                    quantity=prescription_data['quantity'],
+                    dosage=prescription_data['dosage'],
+                    timing=prescription_data['timing'],
+                )
+                prescription.save()
             
-            if user_id is None or medicine is None or dosage is None:
-                return JsonResponse({'message':'Missing any Key'},status=400)
-            if not user_id or not medicine or not dosage:
-                return JsonResponse({'message':'Missing Required Fields'},status=400)
+            return JsonResponse({'message': 'Prescriptions saved successfully'}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
 
 
@@ -452,11 +472,12 @@ def confirm_appointment(request):
                     appointment.approvedby_doctor=True
                     appointment.save()
     
-                    user = User.objects.get(pk=appointment.user_id)
+                    patient = Patient.objects.get(pk=appointment.patient_id)
+                    user = User.objects.get(pk=patient.user_id)
                     department=Dropdown.objects.get(pk=appointment.department_id)
-                    doctor=User.objects.get(pk=request.user.id)
+                    doctor=Doctor.objects.get(pk=request.user.id)
                     context={
-                                "username":user.first_name,
+                                "username":patient.first_name,
                                 "appointmaentDate":appointment.appointmentDate,
                                 "appointmenttime":appointment.time,
                                 "doctor":doctor.first_name + ' ' + doctor.last_name,
@@ -506,14 +527,14 @@ def confirm_appointment(request):
                     appointment.time=new_time
                     appointment.save()
     
-                    user = User.objects.get(pk=appointment.user_id)
-                
-                    doctor=User.objects.get(pk=request.user.id)
+                    patient = Patient.objects.get(pk=appointment.patient_id)
+                    user=User.objects.get(pk=patient.user_id)
+                    doctor=Doctor.objects.get(pk=appointment.doctor_id)
                     department=Dropdown.objects.get(pk=appointment.department_id)
                     
                     
                     context={
-                                # "username":user.first_name,
+                                "username":patient.first_name,
                                 "appointmaentDate":appointment.appointmentDate,
                                 "appointmenttime":appointment.time,
                                 "doctor":doctor.first_name + ' ' + doctor.last_name,
@@ -564,14 +585,14 @@ def confirm_appointment(request):
                         appointment.deleted_status=True
                         appointment.save()
                     
-                        user = User.objects.get(pk=appointment.user_id)
-                    
-                        doctor=User.objects.get(pk=request.user.id)
+                        patient = Patient.objects.get(pk=appointment.patient_id)
+                        user = User.objects.get(pk=patient.user_id)
+                        doctor=Doctor.objects.get(pk=request.user.id)
                         department=Dropdown.objects.get(pk=appointment.department_id)
                         
                         
                         context={
-                                
+                                    "username":patient.first_name,
                                     "appointmaentDate":appointment.appointmentDate,
                                     "reason":reason,
                                     "doctor":doctor.first_name + ' ' + doctor.last_name,
@@ -617,7 +638,7 @@ def personal_information(request):
 def get_approved(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-            patient = list(Appointment.objects.filter(approvedby_receptionist=True,approvedby_doctor=True).values('patient','patient__first_name','patient__last_name','patient__age','patient__gender','appointmentDate','checkup_date'))
+            patient = list(Appointment.objects.filter(approvedby_receptionist=True,approvedby_doctor=True).values('doctor_id','patient_id','patient__first_name','patient__last_name','patient__age','patient__gender','appointmentDate','checkup_date'))
             if patient:
                 return JsonResponse(patient,safe=False)
             else:
@@ -634,7 +655,7 @@ def get_medicalhistory(request):
         if request.user.is_authenticated:
             id= request.GET.get('id')
      
-            patient=Medicalhistory.objects.filter(user=id).values()
+            patient=Medicalhistory.objects.filter(patient=id).values()
             if patient:
                 return JsonResponse(list(patient),safe=False)
             else:
@@ -883,6 +904,7 @@ def generate_pdf(request):
             return pdf_response
         else:
             return JsonResponse({'messege':'You are not looged in'},status=401)
+        
     else:
         return JsonResponse({'messege':'Invalid request method'},status=400)
 
@@ -894,22 +916,11 @@ def generate_pdf(request):
 
 
 
-# class LabelsView(PDFView):
-#     """Generate labels for some Shipments.
 
-#     A PDFView behaves pretty much like a TemplateView, so you can treat it as such.
-#     """
-#     template_name = 'my_app/labels.html'
 
-#     def get_context_data(self, *args, **kwargs):
-#         """Pass some extra context to the template."""
-#         context = super().get_context_data(*args, **kwargs)
 
-#         context['shipments'] = User.objects.filter(
-#             batch_id=kwargs['pk'],
-#         )
 
-#         return context
+
 
 
 # from weasyprint import HTML
