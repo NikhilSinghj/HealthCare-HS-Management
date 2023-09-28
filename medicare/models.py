@@ -64,10 +64,11 @@ class Appointment(models.Model):
     appointmentDate=models.DateField(null=True)
     approvedby_doctor = models.BooleanField(default=False)
     approvedby_receptionist = models.BooleanField(default=False)
-    checkup_status = models.BooleanField(default=False)
+    checkup_status = models.CharField(max_length=20,default='Not Checked')
     checkup_date = models.DateField(null=True)
     time=models.CharField(max_length=20,null=True)
-    payment_status=models.BooleanField(default=False)
+    symptoms = models.CharField(max_length=100,null=True)
+    payment_status=models.CharField(max_length=20,default='Pending')
     deleted_status=models.BooleanField(default=False)
 
     class Meta:
@@ -75,13 +76,12 @@ class Appointment(models.Model):
 
 
 class Medicalhistory(models.Model):
-    patient=models.ForeignKey(Patient,on_delete=models.DO_NOTHING,null=True)
+    patient=models.OneToOneField(Patient,on_delete=models.DO_NOTHING,null=True)
     blood_group = models.CharField(max_length=40,null=True)
     height = models.PositiveIntegerField(null=True)
     weight = models.PositiveIntegerField(null=True)
-    alcoholic=models.BooleanField(default=False)
-    smoker=models.BooleanField(default=False)
-    symptoms = models.CharField(max_length=100,null=True)
+    alcoholic=models.CharField(max_length=20,default='No')
+    smoker=models.CharField(max_length=20,default='No')
     deleted_status = models.BooleanField(default=False)
 
     class Meta:
@@ -125,3 +125,12 @@ class Leftpanel(models.Model):
 
     class Meta:
         db_table='Leftpanel'
+
+
+class Slots(models.Model):
+    doctor=models.ForeignKey(Doctor,on_delete=models.DO_NOTHING,null=True)
+    slots = models.CharField(max_length=50,null=True)
+    deleted_status=models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'avialable_slots'

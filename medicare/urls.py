@@ -8,9 +8,6 @@ urlpatterns = [
      path('login/', views.login_user),
      path('logout/', views.logout_user),
 
-     path('departdrop/', views.dropdown_department),
-     path('doctordrop/', views.dropdown_doctor),
-
      path('availdoctors/', views.available_doctor),
      path('doctorfulldetail/', views.doctor_full_detail),
      path('checkedpatient/', views.get_checked_patient),
@@ -34,5 +31,8 @@ urlpatterns = [
      path('prescribe/', views.save_prescription),
      
      path('getpanel/', views.left_panel),
+     path('departdrop/', views.dropdown_department),
+     path('doctordrop/', views.dropdown_doctor),
+     path('slots/', views.avialable_slots),
   
 ]

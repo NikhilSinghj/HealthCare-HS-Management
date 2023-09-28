@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse,HttpResponse
 import json
 import re
-from .models import User,Doctor,Patient,Appointment,Dropdown,Leftpanel,Medicalhistory,Role,Prescription
+from .models import User,Doctor,Patient,Appointment,Dropdown,Leftpanel,Medicalhistory,Role,Prescription,Slots
 from datetime import datetime
 from django.contrib.auth import authenticate,login,logout
 from django.core.mail import send_mail
@@ -107,7 +107,7 @@ def register_user(request):
                         return JsonResponse({'message':'You Already Have This Role'})
                     else:
                         user.roles.add(patient_role)
-                        return JsonResponse({'message':'Patient is Registered Now'},status=201)
+                        return JsonResponse({'message':'You Are Registered Now Please Fill Your Medical History From Your Dashboard'},status=201)
                     
 
     else:
@@ -421,6 +421,8 @@ def get_prescription(request):
     else:
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
 
+
+
 def save_prescription(request):
     if request.method == 'POST':
         try:
@@ -682,25 +684,27 @@ def book_appointment(request):
             department_id = load.get('department_id')
             time = load.get('time')
             doctor_id=load.get('doctor_id')
+            symptoms=load.get('symptoms')
+            payment_status=load.get('payment_status')
 
-            if appointmentDate is None or department_id is None or time  is None or doctor_id is None: 
+            if appointmentDate is None or department_id is None or time  is None or doctor_id is None or payment_status is None or symptoms is None: 
                 return JsonResponse({'message':'Missing any key'},status=400)
 
-            if not appointmentDate or not department_id or not time  or not doctor_id: 
+            if not appointmentDate or not department_id or not time  or not doctor_id or not payment_status or not symptoms: 
                 return JsonResponse({'message':'Missing required Field'},status=400)
             
             # doctor=Doctor.objects.get(pk=doctor_id)
             if Appointment.objects.filter(patient=request.user.id,appointmentDate=appointmentDate).exists():
                 # print(request.user)
                 if Appointment.objects.filter(patient_id=request.user.id,department_id=department_id,time=time).exists():
-                    return JsonResponse({'message':f'You Already have an appointment on : {appointmentDate} for : {department_id} '},status=409)
+                    return JsonResponse({'message':f'You Already have an appointment on : {appointmentDate} for slot : {time} '},status=409)
                 else:
-                    Appointment.objects.create(patient_id=request.user.id,appointmentDate=appointmentDate,department_id=department_id,doctor_id=doctor_id,time=time)
+                    Appointment.objects.create(patient_id=request.user.id,appointmentDate=appointmentDate,department_id=department_id,doctor_id=doctor_id,time=time,payment_status=payment_status,symptoms=symptoms)
                     
                     return JsonResponse({'message':'Your appointment is Done'},status=201)
             
             else:
-                Appointment.objects.create(patient_id=request.user.id,appointmentDate=appointmentDate,department_id=department_id,doctor_id=doctor_id,time=time)
+                Appointment.objects.create(patient_id=request.user.id,appointmentDate=appointmentDate,department_id=department_id,doctor_id=doctor_id,time=time,payment_status=payment_status,symptoms=symptoms)
                 
                 return JsonResponse({'message':'Your appointment is Done'},status=201)
             
@@ -736,7 +740,7 @@ def get_patient(request):
 def get_previous_appointments(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-            patient = list(Appointment.objects.filter(patient_id=request.user.id,deleted_status=False).values('appointmentDate','department__departments','checkup_status','doctor__first_name','doctor__last_name','payment_status'))
+            patient = list(Appointment.objects.filter(patient_id=request.user.id,deleted_status=False).values('appointmentDate','department__departments','symptoms','doctor__first_name','doctor__last_name','payment_status','checkup_status'))
 
             if patient:
                 return JsonResponse(patient,safe=False)
@@ -759,16 +763,17 @@ def medical_history(request):
             weight=load.get('weight')
             alcoholic=load.get('alcoholic')
             smoker=load.get('smoker')
-            symptoms=load.get('symptoms')
+            
  
-            if blood_group is None or height is None or weight is None or alcoholic is None or smoker is None or symptoms is None:
+            if blood_group is None or height is None or weight is None or alcoholic is None or smoker is None :
                  return JsonResponse({'message':'Missing any key'},status=400)
-            if not blood_group  or not height  or not weight or not alcoholic  or not smoker  or not symptoms :
+            if not blood_group  or not height  or not weight or not alcoholic  or not smoker :
                  return({'messege':'Missing Required field'})
-            if Medicalhistory.objects.filter(user_id=request.user.id).exists():
+            patient=Patient.objects.get(user=request.user.id)
+            if Medicalhistory.objects.filter(patient_id=patient.pk).exists():
                 return JsonResponse({'message':'You Already have filled Your Medical History'})
             else:
-                Medicalhistory.objects.create(user_id=request.user.id,blood_group=blood_group,height=height,weight=weight,alcoholic=alcoholic,smoker=smoker,symptoms=symptoms)
+                Medicalhistory.objects.create(patient_id=patient.pk,blood_group=blood_group,height=height,weight=weight,alcoholic=alcoholic,smoker=smoker)
                 return JsonResponse({'message':'Your Medical history is saved'},status=201)
 
         else:
@@ -851,7 +856,21 @@ def left_panel(request):
         return JsonResponse({'message':'Invalid request Method'},status=400)
 
 
+def avialable_slots(request):
+    if request.method == 'GET':
+        doctor_id = request.GET.get('doctor_id')
+        
+        slots = list(Slots.objects.filter( doctor=doctor_id,deleted_status=False).values('slots'))
 
+        if slots:
+            
+            return JsonResponse(slots,safe=False)
+        else:
+            return JsonResponse({'message': 'Nothing to Show'},status=204) 
+           
+    
+    else:
+        return JsonResponse({'messege':'Invalid Request Method'},status=400)
 
 
 
@@ -863,7 +882,7 @@ def left_panel(request):
 
             
 # ----------------------------------------------------- PDF -----------------------------------------------
-
+# from django_renderpdf import helpers
 
 def generate_pdf(request):
 
@@ -877,28 +896,30 @@ def generate_pdf(request):
                 return JsonResponse({'message':'Missing Required Field'})
             appointment=Appointment.objects.get(pk=appointment_id)
             doctor=Doctor.objects.get(pk=appointment.doctor_id)
+            patient=Patient.objects.get(pk=appointment.patient_id)
             department=Dropdown.objects.get(pk=appointment.department_id)
             date=appointment.appointmentDate
             print(date)
 
             context={
-                  "name":request.user.first_name + ' ' + request.user.last_name,
-                  "contact":request.user.contact,
+                  "name":patient.first_name + ' ' + patient.last_name,
+                  "contact":patient.contact,
                   "date" : appointment.appointmentDate,
                   "billdate":datetime.today(),
                   
-                  "doctorname":appointment.doctor_name,
+                  "doctorname":doctor.first_name + ' ' + doctor.last_name,
                   "fees":doctor.doctorFee,
                   "invoiceno":appointment.pk,
                   "time":appointment.time,
                   "department":department.departments
                     }
-            pdf_content = render_to_string('bill.html',context)
-    
+            
+            
+            pdf_content=render_to_string('bill.html',context)
             pdf_response = HttpResponse(content_type='template/pdf')
-            pdf_response['Content-Disposition'] = 'filename="sample.pdf"'
+            pdf_response['Content-Disposition'] = 'filename="bill.pdf"'
 
-    
+            # helpers.render_pdf(template='bill.html',file_=pdf_response,context=context)
             pdf_response.write(pdf_content)
 
             return pdf_response
