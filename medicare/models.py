@@ -66,7 +66,7 @@ class Appointment(models.Model):
     approvedby_receptionist = models.BooleanField(default=False)
     checkup_status = models.CharField(max_length=20,default='Not Checked')
     checkup_date = models.DateField(null=True)
-    time=models.CharField(max_length=20,null=True)
+    time=models.CharField(max_length=50,null=True)
     symptoms = models.CharField(max_length=100,null=True)
     payment_status=models.CharField(max_length=20,default='Pending')
     deleted_status=models.BooleanField(default=False)

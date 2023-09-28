@@ -242,18 +242,27 @@ def approve_appointment(request):
                     appointment.save()
     
                     patient = Patient.objects.get(pk=appointment.patient_id)
-                    user=User.objects.get(pk=patient.user_id)
-    
-                    subject = 'Rejection of Your Appointment'
-                    rejection_message = f"Dear {patient.first_name},\n\n" \
-                        f"We regret to inform you that your requested appointment, for {appointment.appointmentDate} has been canceled.\n\n" \
-                        f"The cancellation was initiated by our receptionist because of bussy schedule of our doctors. We understand that this may cause inconvenience, and we sincerely apologize for any disruption to your plans.\n\n" \
-                        f"If you have any questions or would like to reschedule your appointment, please don't hesitate to contact our reception desk at 9580395130 or reply to email - nikhilsinghj80@gmail.com .We will do our best to accommodate your needs and preferences.\n\n" \
-                        f"Once again, we apologize for any inconvenience this may have caused and appreciate your understanding in this matter. We look forward to the opportunity to serve you in the future.\n\n" \
-                        f"Thank you for choosing HealthCare."
+                    user = User.objects.get(pk=patient.user_id)
+                    doctor=Doctor.objects.get(pk=request.user.id)
+                    department=Dropdown.objects.get(pk=appointment.department_id)
+                    
+                    
+                    context={
+                                "username":patient.first_name,
+                                "appointmaentDate":appointment.appointmentDate,
+                                "reason":reason,
+                                "doctor":doctor.first_name + ' ' + doctor.last_name,
+                                "department":department.departments,
+                                "by":"Receptionist"
+                               
+                            }
+                    
+                    
+                    rejection_message = render_to_string('appointment_reject.html',context)
+                    subject = 'Appointment Rejection'
                     from_email = 'nikhilsinghj80@gmail.com'
                     to_email = [user.email]
-                    send_mail(subject, rejection_message, from_email, to_email,fail_silently=False)
+                    send_mail(subject, rejection_message, from_email, to_email,fail_silently=False,html_message=rejection_message)
                     return JsonResponse({'message':'appointment is Rejected by Receptionist'},status=200)
                 else:
                     return JsonResponse({'message':'You have Already Rejected this Appointment'},status=409)
@@ -396,56 +405,34 @@ def get_unapproved(request):
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
     
 
-def get_prescription(request):
-    if request.method == "GET":
-        if request.user.is_authenticated:
-            if Role.objects.filter(user=request.user.id,name="Doctor").exists():
-                id= request.GET.get('id')
-
-                if id is None:
-                    return JsonResponse({'message':'Missing key id'},status=400)
-                if not id:
-                    return JsonResponse({'message':'Missing Required Field'},status=400)
-            
-                prescription = list(Prescription.objects.filter(patient=id).values('medicine','quantity','dosage','timing','patient__first_name','patient__last_name','patient__age','patient__gender','doctor__first_name','doctor__last_name','doctor__qualification','doctor__contact'))
-
-                if prescription:
-                    return JsonResponse(prescription,safe=False)
-                else:
-                    return JsonResponse({'message': 'You not have any prescription'},status=204) 
-            else:
-                return JsonResponse({'message':'you Are Not Autherised'},status=403)
-        else:
-            return JsonResponse({'message': 'You Are not logged in'},status=401)   
-    
-    else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
-
-
 
 def save_prescription(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            print(data)
-           
-            for prescription_data in data:
-                prescription = Prescription(
-                    patient_id=prescription_data['patient_id'],
-                    doctor_id=prescription_data['doctor_id'],
-                    medicine=prescription_data['medicine'],
-                    quantity=prescription_data['quantity'],
-                    dosage=prescription_data['dosage'],
-                    timing=prescription_data['timing'],
-                )
-                prescription.save()
+        if request.user.is_authenticated:
+            if Role.objects.filter(user=request.user.id,name="Doctor").exists():
+                data = json.loads(request.body)
             
-            return JsonResponse({'message': 'Prescriptions saved successfully'}, status=201)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+                for prescription_data in data:
+                    
+                    prescription = Prescription(
+                        patient_id=prescription_data['patient_id'],
+                        doctor_id=prescription_data['doctor_id'],
+                        medicine=prescription_data['medicine'],
+                        quantity=prescription_data['quantity'],
+                        dosage=prescription_data['dosage'],
+                        timing=prescription_data['timing'],
+                    )
+                    prescription.save()
+                # appoint=Appointment.objects.get(pk=)
+                
+                return JsonResponse({'message': 'Prescriptions saved successfully'}, status=201)
+            else:
+                return JsonResponse({'message':'You Are Not Autherised'},status=403)
+        else:
+            return JsonResponse({'message': 'You Are Not Logged In'}, status=401)
         
     else:
-        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+        return JsonResponse({'error': 'Invalid Request Method'}, status=405)
 
 
 
@@ -599,6 +586,7 @@ def confirm_appointment(request):
                                     "reason":reason,
                                     "doctor":doctor.first_name + ' ' + doctor.last_name,
                                     "department":department.departments,
+                                    "by":"Doctor"
                                    
                                 }
                         
@@ -721,7 +709,7 @@ def get_patient(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             if Role.objects.filter(user=request.user.id,name="Patient").exists():
-                patient = list(Patient.objects.filter(pk=request.user.id).values('first_name','last_name','age','gender','contact','address'))
+                patient = list(Patient.objects.filter(pk=request.user.id).values('pk','first_name','last_name','age','gender','contact','address'))
 
                 if patient:
                     return JsonResponse(patient,safe=False)
@@ -782,6 +770,53 @@ def medical_history(request):
     
             
     
+    
+    else:
+        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+
+
+
+def get_prescriptions(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            if Role.objects.filter(user=request.user.id,name="Patient").exists():
+                patient = list(Appointment.objects.filter(patient=request.user.id).values('doctor__first_name','doctor__last_name','checkup_date','doctor__department__departments'))
+
+                if patient:
+                    return JsonResponse(patient,safe=False)
+                else:
+                    return JsonResponse({'message': 'You are not rgistered '},status=204) 
+            else:
+                return JsonResponse({'message':'you Are Not Autherised'},status=403)
+        else:
+            return JsonResponse({'message': 'You Are not logged in'},status=401)   
+    
+    else:
+        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+
+
+def generate_prescription(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if Role.objects.filter(user=request.user.id,name="Patient").exists():
+                load=json.loads(request.body)
+                prescription_date=load.get('prescription_date ')    
+                patient_id=load.get('patient_id')
+                if patient_id is None or prescription_date:
+                    return JsonResponse({'message':'Missing key id'},status=400)
+                if not patient_id or not prescription_date:
+                    return JsonResponse({'message':'Missing Required Field'},status=400)
+            
+                prescription = list(Prescription.objects.filter(patient=patient_id,prescription_date=prescription_date).values('medicine','quantity','dosage','timing','patient__first_name','patient__last_name','patient__age','patient__gender','doctor__first_name','doctor__last_name','doctor__qualification','doctor__contact'))
+
+                if prescription:
+                    return JsonResponse(prescription,safe=False)
+                else:
+                    return JsonResponse({'message': 'You not have any prescription'},status=204) 
+            else:
+                return JsonResponse({'message':'you Are Not Autherised'},status=403)
+        else:
+            return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
         return JsonResponse({'messege':'Invalid Request Method'},status=400)
@@ -886,10 +921,11 @@ def avialable_slots(request):
 
 def generate_pdf(request):
 
-    if request.method == "POST":
+    if request.method == "GET":
         if request.user.is_authenticated :
-            load=json.loads(request.body)
-            appointment_id =load.get('appointment_id')
+            # load=json.loads(request.body)
+            # appointment_id =load.get('appointment_id')
+            appointment_id=request.GET.get('appointment_id')
             if appointment_id is None:
                 return JsonResponse({'message':'Missing key appointment_id'})
             if not appointment_id:
@@ -898,8 +934,6 @@ def generate_pdf(request):
             doctor=Doctor.objects.get(pk=appointment.doctor_id)
             patient=Patient.objects.get(pk=appointment.patient_id)
             department=Dropdown.objects.get(pk=appointment.department_id)
-            date=appointment.appointmentDate
-            print(date)
 
             context={
                   "name":patient.first_name + ' ' + patient.last_name,

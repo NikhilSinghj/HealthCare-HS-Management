@@ -19,7 +19,8 @@ urlpatterns = [
      path('confirmappointment/', views.confirm_appointment),
      path('getunapproved/', views.get_unapproved),
      path('getapproved/', views.get_approved),
-     path('getprescription/', views.get_prescription),
+     path('getprescription/', views.get_prescriptions),
+     path('generateprescription/', views.generate_prescription),
      path('getpatient/', views.get_patient),
      path('doctorinfo/', views.personal_information),
 
