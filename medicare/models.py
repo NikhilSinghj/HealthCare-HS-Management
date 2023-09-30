@@ -134,3 +134,11 @@ class Slots(models.Model):
     
     class Meta:
         db_table = 'avialable_slots'
+
+
+class Tests(models.Model):
+    test = models.CharField(max_length=100,null=True,unique=True)
+    deleted_status=models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'avialable_tests'

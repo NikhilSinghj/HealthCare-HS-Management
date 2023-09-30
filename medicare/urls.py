@@ -35,5 +35,9 @@ urlpatterns = [
      path('departdrop/', views.dropdown_department),
      path('doctordrop/', views.dropdown_doctor),
      path('slots/', views.avialable_slots),
+     path('tests/', views.avialable_test),
+     path('mapdata/', views.map_data),
+
+     path('luckydraw/', views.lucky_draw),
   
 ]
