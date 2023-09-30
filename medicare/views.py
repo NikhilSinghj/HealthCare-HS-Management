@@ -370,7 +370,7 @@ def get_checked_patient(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             
-            patient = list(Appointment.objects.filter(checkup_status='Checked',deleted_status=False).values('patient__first_name','patient__last_name','patient__age','patient__gender','time','doctor__first_name','doctor__last_name','checkup_date','department__departments'))
+            patient = list(Appointment.objects.filter(checkup_status='Checked',deleted_status=False).values('patient__first_name','patient__last_name','patient__age','patient__gender','time','doctor__first_name','doctor__last_name','checkup_date','department__departments','appointmentDate'))
             if patient:
                 return JsonResponse(patient,safe=False)
             else:
@@ -641,7 +641,7 @@ def personal_information(request):
 def get_approved(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-            patient = list(Appointment.objects.filter(approvedby_receptionist=True,approvedby_doctor=True).values('pk','doctor_id','patient_id','patient__first_name','patient__last_name','patient__age','patient__gender','appointmentDate','checkup_date'))
+            patient = list(Appointment.objects.filter(approvedby_receptionist=True,approvedby_doctor=True,checkup_status='Not Checked').order_by('appointmentDate').values('pk','doctor_id','patient_id','patient__first_name','patient__last_name','patient__age','patient__gender','appointmentDate','checkup_date'))
             if patient:
                 return JsonResponse(patient,safe=False)
             else:
@@ -747,7 +747,7 @@ def get_previous_appointments(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             patientid=Patient.objects.get(user=request.user.id)
-            patient = list(Appointment.objects.filter(patient_id=patientid.pk,deleted_status=False).values('appointmentDate','department__departments','symptoms','doctor__first_name','doctor__last_name','payment_status','checkup_status'))
+            patient = list(Appointment.objects.filter(patient_id=patientid.pk,deleted_status=False).values('pk','appointmentDate','department__departments','symptoms','doctor__first_name','doctor__last_name','payment_status','checkup_status'))
 
             if patient:
                 return JsonResponse(patient,safe=False)
@@ -887,19 +887,19 @@ def left_panel(request):
     if request.method=="GET":
         if request.user.is_authenticated:
             if Role.objects.filter(user=request.user.id,name="Receptionist").exists():
-                panels=Leftpanel.objects.filter(role="3").values('panel','icons','state')
+                panels=Leftpanel.objects.filter(role="3",deleted_status=False).order_by('order').values('panel','icons','state')
                 if panels:
                     return JsonResponse(list(panels),safe=False)
                 else:
                     return JsonResponse({'message':'No Content'},status=204)
             elif Role.objects.filter(user=request.user.id,name="Doctor").exists():
-                panels=Leftpanel.objects.filter(role="2").values('panel','icons','state')
+                panels=Leftpanel.objects.filter(role="2",deleted_status=False).order_by('order').values('panel','icons','state')
                 if panels:
                     return JsonResponse(list(panels),safe=False)
                 else:
                     return JsonResponse({'message':'No Content'},status=204)
             elif Role.objects.filter(user=request.user.id,name="Patient").exists():
-                panels=Leftpanel.objects.filter(role="1").values('panel','icons','state')
+                panels=Leftpanel.objects.filter(role="1",deleted_status=False).order_by('order').values('panel','icons','state')
                 if panels:
                     return JsonResponse(list(panels),safe=False)
                 else:
@@ -1020,7 +1020,7 @@ import random
 def lucky_draw(request):
     array=['Ananya','Keshav','Amritansh','Saurabh','Srijan','Siddharth','Mayank']
     select=array[random.randint(0, len(array) - 1)]
-    # while select!=array[random.randint(0, len(array) - 1)]:
+    # while True:
     #     continue
     # return JsonResponse({"lucky": array[random.randint(0, len(array) - 1)]})
     return JsonResponse({'message':select})

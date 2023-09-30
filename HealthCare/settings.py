@@ -160,7 +160,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "nikhilsinghj80@gmail.com"  
 EMAIL_HOST_PASSWORD = 'ehbs xrkc jsen rhjh'
 
-
-
+# from django.conf.locale.es import formats as es_formats
+DATE_FORMAT = 'd-m-Y'
+# es_formats.DATE_FORMAT = 'd-m-Y'
 
 # pip install django-cookies-samesite
