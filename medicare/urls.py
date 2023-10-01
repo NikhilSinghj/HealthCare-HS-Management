@@ -10,11 +10,11 @@ urlpatterns = [
 
      path('availdoctors/', views.available_doctor),
      path('doctorfulldetail/', views.doctor_full_detail),
-     path('checkedpatient/', views.get_checked_patient),
      path('ptunderdoct/', views.patient_under_doctor),
      path('patientundertrial/', views.patient_undertrial),
      path('approveappointment/', views.approve_appointment),
      path('getpatientappointment/', views.get_patient_appointment),
+     path('checked/', views.checked_patient),
 
      path('confirmappointment/', views.confirm_appointment),
      path('getunapproved/', views.get_unapproved),
@@ -23,6 +23,7 @@ urlpatterns = [
      path('generateprescription/', views.generate_prescription),
      path('getpatient/', views.get_patient),
      path('doctorinfo/', views.personal_information),
+     path('checkedpatient/', views.get_checked_patient),
 
      path('bookappointment/', views.book_appointment),
      path('getprappoint/', views.get_previous_appointments),
