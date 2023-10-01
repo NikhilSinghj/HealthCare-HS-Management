@@ -31,6 +31,18 @@ def register_doctor(request):
         qualification=load.get('qualification')
         department_id=load.get('department_id')
         doctorFee=load.get('doctorFee')
+        
+        if not re.match(r'(/^[A-Za-z]+$/)', qualification):
+            return JsonResponse({'message':'Only Charcters are Alowed in Qulification Field'},status=400)
+
+        if age is ' ' or age < 0:
+                return JsonResponse({'message':'Age Can Not Be Negative or blank space'},status=400)
+        if contact is ' ' or contact < 0:
+            return JsonResponse({'message':'Contact Can Not Be Negative or blank space'},status=400)
+        if username is ' ' or email is ' ' or first_name is ' ' or last_name is ' ' or password is ' ' or age is ' ' or gender is ' ' or contact is ' ' or address is ' ':
+            return JsonResponse({'messsage':'You Are Passing Space to the Field'},status=400)
+        if doctorFee is ' ' or doctorFee < 0:
+            return JsonResponse({'message':'Fees Can Not Be Negative or blank space'},status=400)
 
         if username is None or email is None or first_name is None or last_name is None or password is None or age is None or gender is None or contact is None or address is None or qualification is None or department_id is None or doctorFee is None:
             return JsonResponse({'messge':'Missing any key'},status=400)
@@ -39,6 +51,14 @@ def register_doctor(request):
         if not username or not email or not password or not first_name or not last_name or not age or not gender or not contact or not address or not qualification or not department_id or not doctorFee : 
             return JsonResponse({'message':'Mising Required fields'},status=400)
         else:
+            if not re.match(r'^[6-9]\d{9}$',contact):
+                return JsonResponse({'message':'Your Contact Can have only 10 digits and in indian Format'},status=400)
+            if not re.match(r'^[a-zA-Z0-9_@-]{3,30}$',username):
+                return JsonResponse({'message':'Match Your Username Requirements'},status=400)
+            if not re.match(r'^[A-Za-z\s]+$', first_name):
+                return JsonResponse({'message':'Invalid first_name format'},status=400)
+            if not re.match(r'^[A-Za-z\s]+$', last_name):
+                return JsonResponse({'message':'Invalid last_name format'},status=400)
             if not re.match(r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b',email):
                 return JsonResponse({'message':'Match Your email Requirements'},status=400)
             
@@ -81,13 +101,29 @@ def register_user(request):
         contact = load.get('contact')
         address = load.get('address')
         
-        
+        if age is ' ' or age < 0:
+                return JsonResponse({'message':'Age Can Not Be Negative'},status=400)
+        if contact is ' ' or contact < 0:
+            return JsonResponse({'message':'Contact Can Not Be Negative'},status=400)
+        if username is ' ' or email is ' ' or first_name is ' ' or last_name is ' ' or password is ' ' or age is ' ' or gender is ' ' or contact is ' ' or address is ' ':
+            return JsonResponse({'messsage':'You Are Passing Space to the Field'},status=400)
         if username is None or email is None or first_name is None or last_name is None or password is None or age is None or gender is None or contact is None or address is None:
-            return JsonResponse({'messge':'Missing any key'},status=400)
+            
+            return JsonResponse({'message':'Missing any key'},status=400)
 
         if not username or not email or not password or not first_name or not last_name or not age or not gender or not contact or not address:
             return JsonResponse({'message':'Mising Required fields'},status=400)
         else:
+            if not re.match(r'^[6-9]\d{9}$',contact):
+                return JsonResponse({'message':'Your Contact Can have only 10 digits and in indian Format'},status=400)
+            if not re.match(r'^[a-zA-Z0-9_@-]{3,30}$',username):
+                return JsonResponse({'message':'Match Your Username Requirements'},status=400)
+            if not re.match(r'^[A-Za-z\s]+$', first_name):
+                return JsonResponse({'message':'Invalid first_name format'},status=400)
+            if not re.match(r'^[A-Za-z\s]+$', last_name):
+                return JsonResponse({'message':'Invalid last_name format'},status=400)
+            
+        
             if not re.match(r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b',email):
                 return JsonResponse({'message':'Match Your email Requirements'},status=400)
             
@@ -111,7 +147,7 @@ def register_user(request):
                     
 
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -144,7 +180,7 @@ def login_user(request):
             return JsonResponse({'message':'Incorrect Username Or password'},status=401)
         
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
         
 
 
@@ -181,7 +217,7 @@ def get_patient_appointment(request):
             return JsonResponse({'message': 'User not logged in'},status=401)
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)     
+        return JsonResponse({'message':'Invalid Request Method'},status=400)     
     
 
 
@@ -199,7 +235,7 @@ def approve_appointment(request):
             
 
                 if not appointment_id :
-                    return JsonResponse({'messege':'Missing Required Field'},status=400)
+                    return JsonResponse({'message':'Missing Required Field'},status=400)
             
 
                 appointment=Appointment.objects.get(pk=appointment_id)
@@ -209,13 +245,13 @@ def approve_appointment(request):
                     # appointment.doctor_id=doctor_id
                     appointment.save()
                 
-                    return JsonResponse({'messege':'appointment is Approved by Receptionist and doctor is assigned'},status=200)
+                    return JsonResponse({'message':'appointment is Approved by Receptionist and doctor is assigned'},status=200)
                 else:
-                    return JsonResponse({'messege':'You have Already approved this patient'},status=409)
+                    return JsonResponse({'message':'You have Already approved this patient'},status=409)
             else:
-                return JsonResponse({'messege':'You are not Autherised to make changes'},status=403)
+                return JsonResponse({'message':'You are Forbiden to make changes'},status=403)
         else:
-                return JsonResponse({'messege':'You are not Authenticated'},status=401)
+                return JsonResponse({'message':'You are not Authenticated'},status=401)
         
     
     
@@ -232,13 +268,14 @@ def approve_appointment(request):
                 
     
                 if not appointment_id or not reason:
-                    return JsonResponse({'messege':'Missing Required Field'},status=400)
+                    return JsonResponse({'message':'Missing Required Field'},status=400)
                 
     
                 appointment=Appointment.objects.get(pk=appointment_id)
     
                 if not appointment.deleted_status:
                     appointment.deleted_status=True
+                    appointment.reason=reason
                     appointment.save()
     
                     patient = Patient.objects.get(pk=appointment.patient_id)
@@ -292,7 +329,7 @@ def patient_undertrial(request):
             return JsonResponse({'message': 'User not Autenticated'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -312,7 +349,7 @@ def available_doctor(request):
             return JsonResponse({'message': 'You Are not Authenticated '},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def doctor_full_detail(request):
@@ -332,7 +369,7 @@ def doctor_full_detail(request):
             return JsonResponse({'message': 'You Are not Authenticated '},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -362,7 +399,7 @@ def patient_under_doctor(request):
             return JsonResponse({'message': 'You Are not Authenticated '},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -380,7 +417,7 @@ def checked_patient(request):
         
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)  
+        return JsonResponse({'message':'Invalid Request Method'},status=400)  
 
 
 
@@ -403,7 +440,7 @@ def get_unapproved(request):
             return JsonResponse({'message': 'User not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
     
 
 
@@ -446,14 +483,14 @@ def save_prescription(request):
             return JsonResponse({'message': 'You Are Not Logged In'}, status=401)
         
     else:
-        return JsonResponse({'error': 'Invalid Request Method'}, status=405)
+        return JsonResponse({'message': 'Invalid Request Method'}, status=405)
 
 
 def get_checked_patient(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             doctor=Doctor.objects.get(user=request.user.id)
-            patient = list(Appointment.objects.filter(doctor=doctor.pk,checkup_status='Checked',deleted_status=False).values('patient__first_name','patient__last_name','patient__age','patient__gender','time','doctor__first_name','doctor__last_name','checkup_date','department__departments','appointmentDate'))
+            patient = list(Appointment.objects.filter(doctor=doctor.pk,checkup_status='Checked',deleted_status=False).values('patient','patient__first_name','patient__last_name','patient__age','patient__gender','time','doctor__first_name','doctor__last_name','checkup_date','department__departments','appointmentDate'))
             if patient:
                 return JsonResponse(patient,safe=False)
             else:
@@ -463,7 +500,7 @@ def get_checked_patient(request):
         
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def confirm_appointment(request):
@@ -480,7 +517,7 @@ def confirm_appointment(request):
                     return JsonResponse({'message':'Missing any Key'},status=400)            
     
                 if not appointment_id :
-                    return JsonResponse({'messege':'Missing Required Field'},status=400)
+                    return JsonResponse({'message':'Missing Required Field'},status=400)
                 
     
                 appointment=Appointment.objects.get(pk=appointment_id)
@@ -507,14 +544,14 @@ def confirm_appointment(request):
                     from_email = 'nikhilsinghj80@gmail.com'
                     to_email = [user.email]
                     send_mail(subject, confirmation_message, from_email, to_email,fail_silently=False,html_message=confirmation_message)
-                    return JsonResponse({'messege':'appointment is Approved by Doctor'},status=200)
+                    return JsonResponse({'message':'appointment is Approved by Doctor'},status=200)
                 else:
-                    return JsonResponse({'messege':'You have Already approved this patient'},status=409)
+                    return JsonResponse({'message':'You have Already approved this patient'},status=409)
             else:
                 return JsonResponse({'message':'You Are Not Autherised'},status=403)    
 
         else:
-                return JsonResponse({'messege':'You are not Authenticated'},status=401)  
+                return JsonResponse({'message':'You are not Authenticated'},status=401)  
 
          
     
@@ -542,6 +579,7 @@ def confirm_appointment(request):
                 if appointment.approvedby_receptionist:
                     appointment.appointmentDate=new_appointmentDate
                     appointment.time=new_time
+                    appointment.reason=reason
                     appointment.save()
     
                     patient = Patient.objects.get(pk=appointment.patient_id)
@@ -600,6 +638,7 @@ def confirm_appointment(request):
                         return JsonResponse({'message':'You Can not reject this Appointment As You have Approved It Earlier'},status=403)
                     else:
                         appointment.deleted_status=True
+                        appointment.reason=reason
                         appointment.save()
                     
                         patient = Patient.objects.get(pk=appointment.patient_id)
@@ -650,7 +689,7 @@ def personal_information(request):
             return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def get_approved(request):
@@ -666,7 +705,7 @@ def get_approved(request):
             return JsonResponse({'message': 'User not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def get_medicalhistory(request):
@@ -685,6 +724,37 @@ def get_medicalhistory(request):
         
     else:
         return JsonResponse({'message':'Invalid Request Method'},status=400)
+
+
+
+def view_prescription(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if Role.objects.filter(user=request.user.id,name="Doctor").exists():
+                load=json.loads(request.body)
+                print(load)
+                prescription_date=load.get('prescription_date')    
+                patient_id=load.get('patient_id')
+                if patient_id is None or prescription_date is None :
+                    return JsonResponse({'message':'Missing any key '},status=400)
+                if not patient_id or not prescription_date:
+                    return JsonResponse({'message':'Missing Required Field'},status=400)
+            
+                prescription = list(Prescription.objects.filter(patient=patient_id,prescription_date=prescription_date,doctor=request.user.id).values('medicine','quantity','dosage','timing'))
+                doctor=list(Doctor.objects.filter(pk=request.user.id).values('first_name','last_name','qualification','contact'))
+                patient=list(Patient.objects.filter(pk=patient_id).values('first_name','last_name','age','gender'))
+                if prescription:
+                    return JsonResponse({'prescription':prescription,'doctor':doctor,'patient':patient})
+                else:
+                    return JsonResponse({'message': 'You not have any prescription'},status=204) 
+            else:
+                return JsonResponse({'message':'Forbiden'},status=403)
+        else:
+            return JsonResponse({'message': 'You Are not logged in'},status=401)   
+    
+    else:
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
+
 
 
 # ----------------------------------------------------- Patient Dashboard -----------------------------------------------
@@ -755,7 +825,7 @@ def get_patient(request):
             return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -773,7 +843,7 @@ def get_previous_appointments(request):
             return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def medical_history(request):
@@ -787,11 +857,15 @@ def medical_history(request):
             alcoholic=load.get('alcoholic')
             smoker=load.get('smoker')
             
+            if height < 0:
+                return JsonResponse({'message':'Height Can Not Be Negative'},status=400)
+            if weight < 0:
+                return JsonResponse({'message':'Weight Can Not Be Negative'},status=400)
  
             if blood_group is None or height is None or weight is None or alcoholic is None or smoker is None :
                  return JsonResponse({'message':'Missing any key'},status=400)
             if not blood_group  or not height  or not weight or not alcoholic  or not smoker :
-                 return JsonResponse({'messege':'Missing Required field'},status=400)
+                 return JsonResponse({'message':'Missing Required field'},status=400)
             patient=Patient.objects.get(user=request.user.id)
             if Medicalhistory.objects.filter(patient_id=patient.pk).exists():
                 return JsonResponse({'message':'You Already have filled Your Medical History'})
@@ -828,7 +902,7 @@ def get_prescriptions(request):
             return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def generate_prescription(request):
@@ -853,13 +927,29 @@ def generate_prescription(request):
                 else:
                     return JsonResponse({'message': 'You not have any prescription'},status=204) 
             else:
-                return JsonResponse({'message':'you Are Not Autherised'},status=403)
+                return JsonResponse({'message':'Forbiden'},status=403)
         else:
             return JsonResponse({'message': 'You Are not logged in'},status=401)   
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
+
+def rejected_appointments(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            patientid=Patient.objects.get(user=request.user.id)
+            patient = list(Appointment.objects.filter(patient_id=patientid.pk,deleted_status=True).values('pk','appointmentDate','department__departments','symptoms','doctor__first_name','doctor__last_name','reason'))
+
+            if patient:
+                return JsonResponse(patient,safe=False)
+            else:
+                return JsonResponse({'message': 'You have no appointments'},status=204) 
+        else:
+            return JsonResponse({'message': 'You Are not logged in'},status=401)   
+    
+    else:
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 # ----------------------------------------------------- Home Page -----------------------------------------------
 
@@ -875,7 +965,7 @@ def dropdown_department(request):
            
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -896,7 +986,7 @@ def dropdown_doctor(request):
            
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 def left_panel(request):
@@ -921,7 +1011,7 @@ def left_panel(request):
                 else:
                     return JsonResponse({'message':'No Content'},status=204)
             else:
-                return JsonResponse({'message':'No Role Found for this user'},status=304)
+                return JsonResponse({'message':'No Role Found for this user'},status=400)
 
         else:
             return JsonResponse({'message':'You are not logged in'},status=401)
@@ -944,7 +1034,7 @@ def avialable_slots(request):
            
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -961,7 +1051,7 @@ def avialable_test(request):
            
     
     else:
-        return JsonResponse({'messege':'Invalid Request Method'},status=400)
+        return JsonResponse({'message':'Invalid Request Method'},status=400)
 
 
 
@@ -1028,10 +1118,10 @@ def generate_pdf(request):
 
             return pdf_response
         else:
-            return JsonResponse({'messege':'You are not looged in'},status=401)
+            return JsonResponse({'message':'You are not looged in'},status=401)
         
     else:
-        return JsonResponse({'messege':'Invalid request method'},status=400)
+        return JsonResponse({'message':'Invalid request method'},status=400)
 
 
 
@@ -1046,7 +1136,7 @@ def lucky_draw(request):
     array=['Ananya','Keshav','Amritansh','Saurabh','Srijan','Siddharth','Mayank','Sukriti','Swapnil','Himanshu','Nikhil']
     select=[]
     while True:
-        randomno=array[random.randint(0, len(array) - 1)]
+        randomno=random.choice(array)
         if randomno in select:
             select.append(randomno)
             break
@@ -1055,7 +1145,7 @@ def lucky_draw(request):
 
     
 
-
+# randint(0, len(array) - 1)
 
 
 

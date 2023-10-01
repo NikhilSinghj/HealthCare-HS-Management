@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 
 class Role(models.Model):
     name = models.CharField(max_length=50)
-    
+    deleted_status=models.BooleanField(default=False)
 
 
 class User(AbstractUser):
@@ -69,6 +69,7 @@ class Appointment(models.Model):
     time=models.CharField(max_length=50,null=True)
     symptoms = models.CharField(max_length=100,null=True)
     payment_status=models.CharField(max_length=20,default='Pending')
+    reason=models.TextField(max_length=100,blank=True)
     deleted_status=models.BooleanField(default=False)
 
     class Meta:
