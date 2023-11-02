@@ -261,7 +261,7 @@ def approve_appointment(request):
                 load=json.loads(request.body)
     
                 appointment_id=load.get('appointment_id')
-                reason=load.get('reason')
+                reason=load.get('reason')							
     
                 if appointment_id is None or reason is None:
                     return JsonResponse({'message':'Missing Any Key'},status=400)
